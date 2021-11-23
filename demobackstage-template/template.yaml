@@ -1,0 +1,61 @@
+apiVersion: backstage.io/v1beta2
+kind: Template
+metadata:
+  name: app-template
+  title: Demo Application Template
+  description: Demo Application Template
+spec:
+  type: service
+  parameters:
+    - title: Provide Simple Information
+      required:
+        - application_name
+        - package_name
+      properties:
+        application_name:
+          title: Name
+          type: string
+          description: Unique name of the component
+        package_name:
+          title: Java Package Name
+          type: string
+          description: Name for the java package. eg (io.backstage.blah)
+        description:
+          title: Description
+          type: string
+          description: Help others understand what this website is for.
+    - title: Choose a location
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository Location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+  steps:
+    - id: fetch-template
+      name: Fetch Template
+      action: fetch:template
+      input:
+        url: ./app-template
+        values:
+          application_name: '{{ parameters.application_name }}'
+          description: '{{ parameters.description }}'
+          package_name: '{{ parameters.package_name }}'
+          destination: '{{ parseRepoUrl parameters.repoUrl }}'
+    - id: publish
+      name: Publish
+      action: publish:github
+      input:
+        allowedHosts: ['github.com']
+        description: 'This is {{ parameters.appliction_name }}'
+        repoUrl: '{{ parameters.repoUrl }}'
+    - id: register
+      name: Register
+      action: catalog:register
+      input:
+        repoContentsUrl: '{{ steps.publish.output.repoContentsUrl }}'
+        catalogInfoPath: '/catalog-info.yaml'

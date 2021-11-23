@@ -1,0 +1,4 @@
+app:
+  name: ${{values.application_name}}
+  description: ${{values.description}}
+  package: ${{values.package_name}}
